@@ -6,6 +6,20 @@ export interface Trainer {
   phone: string;
   specialization: string[];
   availability: boolean;
+  education?: string;
+  position?: string;
+  areaOfExpertise?: {
+    programmingLanguages?: string;
+    problemSolving?: string;
+    cloudTechnologies?: string;
+  };
+  workExperience?: Array<{
+    position: string;
+    company: string;
+    duration: string;
+  }>;
+  bio?: string;
+  profileImage?: string;
 }
 
 export interface College {
@@ -35,4 +49,11 @@ export interface Task {
 export interface CalendarEvent extends Task {
   trainerName: string;
   collegeName?: string;
+}
+
+export interface UserCredentials {
+  username: string;
+  password: string;
+  role: 'superadmin' | 'trainer';
+  trainerId?: string;
 }

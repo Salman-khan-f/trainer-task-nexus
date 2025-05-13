@@ -4,8 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Calendar from '../components/Calendar';
 import TrainerList from '../components/TrainerList';
+import TrainersTable from '../components/TrainersTable';
 import TaskForm from '../components/TaskForm';
 import TaskDetail from '../components/TaskDetail';
+import TrainerProfile from '../components/TrainerProfile';
 import { CalendarEvent, Task, Trainer } from '../types';
 import { useUser } from '../context/UserContext';
 import {
@@ -28,7 +30,9 @@ const SuperAdminDashboard: React.FC = () => {
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [detailTask, setDetailTask] = useState<Task | null>(null);
-  const [activeTab, setActiveTab] = useState<'calendar' | 'trainers'>('calendar');
+  const [activeTab, setActiveTab] = useState<'calendar' | 'trainers' | 'trainersTable'>('calendar');
+  const [selectedTrainer, setSelectedTrainer] = useState<Trainer | null>(null);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   
   // Redirect if not logged in or not admin
   useEffect(() => {
@@ -79,6 +83,11 @@ const SuperAdminDashboard: React.FC = () => {
     // Open form to create new task for this trainer
     setSelectedTask(null);
     setIsTaskFormOpen(true);
+  };
+  
+  const handleViewProfile = (trainer: Trainer) => {
+    setSelectedTrainer(trainer);
+    setIsProfileOpen(true);
   };
   
   const handleTaskSubmit = (taskData: Omit<Task, 'id'>) => {
@@ -147,7 +156,13 @@ const SuperAdminDashboard: React.FC = () => {
             className={`tab-btn ${activeTab === 'trainers' ? 'active' : ''}`}
             onClick={() => setActiveTab('trainers')}
           >
-            Trainers List
+            Trainers Cards
+          </button>
+          <button 
+            className={`tab-btn ${activeTab === 'trainersTable' ? 'active' : ''}`}
+            onClick={() => setActiveTab('trainersTable')}
+          >
+            Trainers Table
           </button>
         </div>
         
@@ -158,10 +173,16 @@ const SuperAdminDashboard: React.FC = () => {
               onDateClick={handleDateClick}
               onEventClick={handleEventClick}
             />
-          ) : (
+          ) : activeTab === 'trainers' ? (
             <TrainerList 
               trainers={trainers}
               onTrainerSelect={handleTrainerSelect}
+            />
+          ) : (
+            <TrainersTable 
+              trainers={trainers}
+              onViewProfile={handleViewProfile}
+              onAssignTask={handleTrainerSelect}
             />
           )}
         </div>
@@ -185,6 +206,17 @@ const SuperAdminDashboard: React.FC = () => {
           onClose={() => setDetailTask(null)}
           onEdit={handleEditTask}
           onDelete={handleDeleteTask}
+        />
+      )}
+      
+      {isProfileOpen && selectedTrainer && (
+        <TrainerProfile
+          trainer={selectedTrainer}
+          onClose={() => {
+            setSelectedTrainer(null);
+            setIsProfileOpen(false);
+          }}
+          isAdmin={true}
         />
       )}
       

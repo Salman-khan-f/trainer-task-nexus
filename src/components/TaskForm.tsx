@@ -21,8 +21,6 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, onCancel, initialData, is
   const [description, setDescription] = useState(initialData?.description || '');
   const [startDate, setStartDate] = useState(initialData?.startDate || '');
   const [endDate, setEndDate] = useState(initialData?.endDate || '');
-  const [startTime, setStartTime] = useState(initialData?.startTime || '');
-  const [endTime, setEndTime] = useState(initialData?.endTime || '');
   const [collegeId, setCollegeId] = useState(initialData?.collegeId || '');
   const [course, setCourse] = useState(initialData?.course || '');
   const [status, setStatus] = useState<'pending' | 'in-progress' | 'completed'>(initialData?.status || 'pending');
@@ -36,8 +34,6 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, onCancel, initialData, is
         setDescription(initialData.description || '');
         setStartDate(initialData.startDate);
         setEndDate(initialData.endDate);
-        setStartTime(initialData.startTime || '');
-        setEndTime(initialData.endTime || '');
         setCollegeId(initialData.collegeId || '');
         setCourse(initialData.course || '');
         setStatus(initialData.status);
@@ -48,8 +44,6 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, onCancel, initialData, is
         setDescription('');
         setStartDate('');
         setEndDate('');
-        setStartTime('');
-        setEndTime('');
         setCollegeId('');
         setCourse('');
         setStatus('pending');
@@ -76,8 +70,6 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, onCancel, initialData, is
     };
     
     if (taskType === 'training') {
-      taskData.startTime = startTime;
-      taskData.endTime = endTime;
       taskData.collegeId = collegeId;
       taskData.course = course;
     }
@@ -115,12 +107,8 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, onCancel, initialData, is
           
           {taskType === 'training' && (
             <TrainingFields
-              startTime={startTime}
-              endTime={endTime}
               collegeId={collegeId}
               course={course}
-              onStartTimeChange={setStartTime}
-              onEndTimeChange={setEndTime}
               onCollegeChange={setCollegeId}
               onCourseChange={setCourse}
               colleges={colleges}

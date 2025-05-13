@@ -1,15 +1,51 @@
+import { Trainer, College, Task, UserCredentials } from '../types';
 
-import { Trainer, College, Task } from '../types';
+// Mock trainer data (as if imported from Excel) with enhanced details
+export const trainers: Trainer[] = Array.from({ length: 50 }, (_, i) => {
+  const id = `Neo${i + 1}`;
+  const specializations = getRandomSpecializations();
+  
+  return {
+    id,
+    name: `Trainer ${i + 1}`,
+    email: `trainer${i + 1}@example.com`,
+    phone: `555-000-${1000 + i}`,
+    specialization: specializations,
+    availability: Math.random() > 0.2, // 80% are available
+    education: Math.random() > 0.5 ? "B.E Computer Science Engineering" : "M.Sc Computer Science",
+    position: "Technical Trainer",
+    areaOfExpertise: {
+      programmingLanguages: getExpertiseBasedOnSpecialization(specializations, 'language'),
+      problemSolving: Math.random() > 0.5 ? "Data Structures and Algorithms" : "System Design",
+      cloudTechnologies: Math.random() > 0.5 ? "AWS Cloud Architect" : "Azure Cloud Services"
+    },
+    workExperience: [
+      {
+        position: "Technical Trainer",
+        company: "iamneo",
+        duration: "August 2023 - Present"
+      },
+      {
+        position: "Career Development Coach",
+        company: "ETHNUS Consultancy",
+        duration: "June 2022 - June 2023"
+      }
+    ],
+    bio: `Dedicated Career Development Coach and Technical Trainer with a strong technical foundation in ${specializations.join(', ')}. Experienced in guiding and mentoring college students and early-career professionals.`
+  };
+});
 
-// Mock trainer data (as if imported from Excel)
-export const trainers: Trainer[] = Array.from({ length: 50 }, (_, i) => ({
-  id: `Neo${i + 1}`,
-  name: `Trainer ${i + 1}`,
-  email: `trainer${i + 1}@example.com`,
-  phone: `555-000-${1000 + i}`,
-  specialization: getRandomSpecializations(),
-  availability: Math.random() > 0.2, // 80% are available
-}));
+function getExpertiseBasedOnSpecialization(specializations: string[], type: 'language' | 'cloud') {
+  if (type === 'language') {
+    if (specializations.includes('React')) return 'JavaScript, TypeScript, React';
+    if (specializations.includes('Java')) return 'Java, Spring Boot';
+    if (specializations.includes('Python')) return 'Python, Django';
+    if (specializations.includes('DSA')) return 'C++, Java';
+    return 'JavaScript, Java, Python';
+  }
+  
+  return 'AWS, Azure';
+}
 
 function getRandomSpecializations() {
   const specializations = ['React', 'DSA', 'SDET', 'JavaScript', 'Python', 'Java', 'DevOps'];
@@ -33,6 +69,7 @@ export const colleges: College[] = [
   { id: 'C3', name: 'Data Science Academy', location: 'Boston', contact: '555-246-8101' },
   { id: 'C4', name: 'Computer Science University', location: 'Austin', contact: '555-369-1478' },
   { id: 'C5', name: 'Developer Training Center', location: 'Seattle', contact: '555-789-4561' },
+  { id: 'C6', name: 'Sree Krishna College of Technology', location: 'Chennai', contact: '555-111-2222' },
 ];
 
 // Sample initial tasks
@@ -76,6 +113,24 @@ export const initialTasks: Task[] = [
     status: 'in-progress',
   },
 ];
+
+// Authentication data
+export const userCredentials: UserCredentials[] = [
+  { username: 'Salman', password: 'Salman123', role: 'superadmin' },
+  ...trainers.map(trainer => ({ 
+    username: trainer.id, 
+    password: trainer.id, 
+    role: 'trainer',
+    trainerId: trainer.id
+  }))
+];
+
+// Authenticate user
+export const authenticateUser = (username: string, password: string): UserCredentials | null => {
+  return userCredentials.find(
+    cred => cred.username === username && cred.password === password
+  ) || null;
+};
 
 // Local storage keys
 const TASKS_STORAGE_KEY = 'trainer_management_tasks';
@@ -131,6 +186,18 @@ export const deleteTask = (taskId: string): void => {
 // Get a trainer by ID
 export const getTrainerById = (trainerId: string): Trainer | undefined => {
   return trainers.find(trainer => trainer.id === trainerId);
+};
+
+// Update trainer details
+export const updateTrainer = (trainerId: string, updatedData: Partial<Trainer>): Trainer | undefined => {
+  const trainerIndex = trainers.findIndex(trainer => trainer.id === trainerId);
+  
+  if (trainerIndex !== -1) {
+    trainers[trainerIndex] = { ...trainers[trainerIndex], ...updatedData };
+    return trainers[trainerIndex];
+  }
+  
+  return undefined;
 };
 
 // Get a college by ID
