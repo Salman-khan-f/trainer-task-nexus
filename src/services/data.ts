@@ -120,7 +120,7 @@ export const userCredentials: UserCredentials[] = [
   ...trainers.map(trainer => ({ 
     username: trainer.id, 
     password: trainer.id, 
-    role: 'trainer',
+    role: 'trainer' as const,
     trainerId: trainer.id
   }))
 ];
