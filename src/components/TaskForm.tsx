@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Task, Trainer, College, TaskType } from '../types';
 import { trainers, colleges } from '../services/data';
@@ -21,7 +20,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, onCancel, initialData, is
   const [endTime, setEndTime] = useState(initialData?.endTime || '');
   const [collegeId, setCollegeId] = useState(initialData?.collegeId || '');
   const [course, setCourse] = useState(initialData?.course || '');
-  const [status, setStatus] = useState(initialData?.status || 'pending');
+  const [status, setStatus] = useState<'pending' | 'in-progress' | 'completed'>(initialData?.status || 'pending');
   const [filteredTrainers, setFilteredTrainers] = useState<Trainer[]>(trainers);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -37,7 +36,6 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, onCancel, initialData, is
     }
   }, [searchTerm]);
 
-  // Reset form when opening or changing initialData
   useEffect(() => {
     if (isOpen) {
       if (initialData) {
@@ -53,7 +51,6 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, onCancel, initialData, is
         setCourse(initialData.course || '');
         setStatus(initialData.status);
       } else {
-        // Reset form for new task
         setTrainerId('');
         setTaskType('training');
         setTitle('');
@@ -68,6 +65,11 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, onCancel, initialData, is
       }
     }
   }, [isOpen, initialData]);
+
+  const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newStatus = e.target.value as 'pending' | 'in-progress' | 'completed';
+    setStatus(newStatus);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -254,7 +256,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, onCancel, initialData, is
             <label>Status</label>
             <select
               value={status}
-              onChange={(e) => setStatus(e.target.value)}
+              onChange={handleStatusChange}
               required
             >
               <option value="pending">Pending</option>
