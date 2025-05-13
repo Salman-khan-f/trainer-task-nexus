@@ -3,7 +3,7 @@ import { Trainer, College, Task } from '../types';
 
 // Mock trainer data (as if imported from Excel)
 export const trainers: Trainer[] = Array.from({ length: 50 }, (_, i) => ({
-  id: `T${i + 1}`,
+  id: `Neo${i + 1}`,
   name: `Trainer ${i + 1}`,
   email: `trainer${i + 1}@example.com`,
   phone: `555-000-${1000 + i}`,
@@ -39,7 +39,7 @@ export const colleges: College[] = [
 export const initialTasks: Task[] = [
   {
     id: 'task1',
-    trainerId: 'T1',
+    trainerId: 'Neo1',
     type: 'training',
     title: 'React Fundamentals',
     description: 'Introduction to React basics and hooks',
@@ -53,7 +53,7 @@ export const initialTasks: Task[] = [
   },
   {
     id: 'task2',
-    trainerId: 'T2',
+    trainerId: 'Neo2',
     type: 'training',
     title: 'Data Structures',
     description: 'Advanced data structures concepts',
@@ -67,7 +67,7 @@ export const initialTasks: Task[] = [
   },
   {
     id: 'task3',
-    trainerId: 'T3',
+    trainerId: 'Neo3',
     type: 'non-training',
     title: 'Curriculum Development',
     description: 'Develop new SDET curriculum',
