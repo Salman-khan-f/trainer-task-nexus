@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
@@ -8,7 +7,7 @@ import TrainersTable from '../components/TrainersTable';
 import TaskForm from '../components/TaskForm';
 import TaskDetail from '../components/TaskDetail';
 import TrainerProfile from '../components/TrainerProfile';
-import { CalendarEvent, Task, Trainer } from '../types';
+import { CalendarEvent, Task, Trainer, TrainerAssignment } from '../types';
 import { useUser } from '../context/UserContext';
 import {
   trainers,
@@ -168,17 +167,17 @@ const SuperAdminDashboard: React.FC = () => {
     }
   };
 
-  const filterTrainersByTech = (trainers: Array<{trainer: Trainer, task: Task, location?: string}> | Trainer[]) => {
-    if (!selectedTechFilter) return trainers;
+  const filterTrainersByTech = (items: TrainerAssignment[] | Trainer[]) => {
+    if (!selectedTechFilter) return items;
     
-    if ('task' in trainers[0]) {
-      // This is the assignments array
-      return (trainers as Array<{trainer: Trainer, task: Task, location?: string}>).filter(
+    if ('task' in items[0]) {
+      // This is the assignments array (TrainerAssignment[])
+      return (items as TrainerAssignment[]).filter(
         assignment => assignment.trainer.specialization?.includes(selectedTechFilter)
       );
     } else {
-      // This is the trainers array
-      return (trainers as Trainer[]).filter(
+      // This is the trainers array (Trainer[])
+      return (items as Trainer[]).filter(
         trainer => trainer.specialization?.includes(selectedTechFilter)
       );
     }
@@ -265,14 +264,23 @@ const SuperAdminDashboard: React.FC = () => {
                   <div className="assignments-section">
                     <h4 className="section-header training-header">Trainer Assignments - Client/Location</h4>
                     
-                    {filterTrainersByTech(trainerAssignments).filter(assignment => assignment.task.type === 'training').length > 0 ? (
+                    {filterTrainersByTech(trainerAssignments).filter(assignment => 
+                      assignment.task.type === 'training'
+                    ).length > 0 ? (
                       <div className="day-assignments-list">
                         {filterTrainersByTech(trainerAssignments)
                           .filter(assignment => assignment.task.type === 'training')
                           .map((assignment, index) => (
                             <div className="assignment-card" key={index}>
                               <div className="assignment-header">
-                                <h4>{assignment.trainer.name}</h4>
+                                <h4>
+                                  {assignment.trainer.name} 
+                                  {assignment.task.trainerRole ? 
+                                    <span className="role-badge">
+                                      {assignment.task.trainerRole === 'ta' ? 'TA' : 'Trainer'}
+                                    </span> : ''
+                                  }
+                                </h4>
                                 <div className="assignment-actions">
                                   <button 
                                     className="btn-link"
@@ -323,7 +331,9 @@ const SuperAdminDashboard: React.FC = () => {
                   <div className="assignments-section">
                     <h4 className="section-header non-training-header">Non-Available Trainers - Task Allocated</h4>
                     
-                    {filterTrainersByTech(trainerAssignments).filter(assignment => assignment.task.type !== 'training').length > 0 ? (
+                    {filterTrainersByTech(trainerAssignments).filter(assignment => 
+                      assignment.task.type !== 'training'
+                    ).length > 0 ? (
                       <div className="day-assignments-list">
                         {filterTrainersByTech(trainerAssignments)
                           .filter(assignment => assignment.task.type !== 'training')
@@ -608,6 +618,9 @@ const SuperAdminDashboard: React.FC = () => {
         .assignment-header h4 {
           margin: 0;
           font-size: 1rem;
+          display: flex;
+          align-items: center;
+          gap: 8px;
         }
         
         .assignment-details {
@@ -664,6 +677,15 @@ const SuperAdminDashboard: React.FC = () => {
         .status-completed {
           background-color: var(--success-light);
           color: var(--success);
+        }
+        
+        .role-badge {
+          background-color: #4CAF50;
+          color: white;
+          font-size: 0.7rem;
+          padding: 2px 6px;
+          border-radius: 10px;
+          margin-left: 8px;
         }
         
         .btn-link {

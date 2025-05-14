@@ -30,6 +30,7 @@ export interface College {
 }
 
 export type TaskType = 'training' | 'non-training';
+export type TrainerRole = 'trainer' | 'ta'; // New type for trainer role
 
 export interface Task {
   id: string;
@@ -44,6 +45,7 @@ export interface Task {
   collegeId?: string;
   course?: string;
   status: 'pending' | 'in-progress' | 'completed';
+  trainerRole?: TrainerRole; // New field for trainer role
 }
 
 export interface CalendarEvent extends Task {
@@ -56,4 +58,10 @@ export interface UserCredentials {
   password: string;
   role: 'superadmin' | 'trainer';
   trainerId?: string;
+}
+
+export interface TrainerAssignment {
+  trainer: Trainer;
+  task: Task;
+  location?: string;
 }
