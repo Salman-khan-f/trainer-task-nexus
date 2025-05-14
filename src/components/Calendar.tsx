@@ -6,7 +6,7 @@ import { Button } from './ui/button';
 import { DateRange } from 'react-day-picker';
 import { importEventsFromJSON, importEventsFromExcel, processImportedEvents } from '../utils/importUtils';
 import { toast } from '../hooks/use-toast';
-import { FileJson, FileExcel, Import } from 'lucide-react';
+import { FileJson, FileCode, Import } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Textarea } from './ui/textarea';
@@ -303,7 +303,7 @@ const Calendar: React.FC<CalendarProps> = ({ events, onDateClick, onEventClick, 
                     <FileJson className="mr-2 h-4 w-4" /> JSON
                   </TabsTrigger>
                   <TabsTrigger value="excel">
-                    <FileExcel className="mr-2 h-4 w-4" /> Excel
+                    <FileCode className="mr-2 h-4 w-4" /> Excel
                   </TabsTrigger>
                 </TabsList>
                 
