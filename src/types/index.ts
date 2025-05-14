@@ -1,4 +1,3 @@
-
 export interface Trainer {
   id: string;
   name: string;
@@ -56,4 +55,11 @@ export interface UserCredentials {
   password: string;
   role: 'superadmin' | 'trainer';
   trainerId?: string;
+}
+
+// Add this new interface for trainer assignment type clarity
+export interface TrainerAssignment {
+  trainer: Trainer;
+  task: Task;
+  location?: string;
 }
