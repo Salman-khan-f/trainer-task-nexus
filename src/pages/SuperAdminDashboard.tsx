@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
@@ -7,7 +8,7 @@ import TrainersTable from '../components/TrainersTable';
 import TaskForm from '../components/TaskForm';
 import TaskDetail from '../components/TaskDetail';
 import TrainerProfile from '../components/TrainerProfile';
-import { CalendarEvent, Task, Trainer, TrainerAssignment } from '../types';
+import { CalendarEvent, Task, Trainer } from '../types';
 import { useUser } from '../context/UserContext';
 import {
   trainers,
@@ -33,7 +34,7 @@ const SuperAdminDashboard: React.FC = () => {
   const [selectedTrainer, setSelectedTrainer] = useState<Trainer | null>(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [trainerAssignments, setTrainerAssignments] = useState<TrainerAssignment[]>([]);
+  const [trainerAssignments, setTrainerAssignments] = useState<Array<{trainer: Trainer, task: Task, location?: string}>>([]);
   const [nonAssignedTrainers, setNonAssignedTrainers] = useState<Trainer[]>([]);
   const [techStackFilters, setTechStackFilters] = useState<string[]>([]);
   const [selectedTechFilter, setSelectedTechFilter] = useState<string | null>(null);
@@ -167,25 +168,19 @@ const SuperAdminDashboard: React.FC = () => {
     }
   };
 
-  // Updated filterTrainersByTech function with proper type handling
-  const filterTrainersByTech = <T extends TrainerAssignment[] | Trainer[]>(items: T): T => {
-    if (!selectedTechFilter) return items;
+  const filterTrainersByTech = (trainers: Array<{trainer: Trainer, task: Task, location?: string}> | Trainer[]) => {
+    if (!selectedTechFilter) return trainers;
     
-    if (items.length === 0) return items as T;
-
-    // Check if we're dealing with TrainerAssignment[] or Trainer[]
-    if ('task' in items[0]) {
-      // This is the assignments array (TrainerAssignment[])
-      return (items as TrainerAssignment[])
-        .filter(assignment => 
-          assignment.trainer.specialization?.includes(selectedTechFilter)
-        ) as unknown as T;
+    if ('task' in trainers[0]) {
+      // This is the assignments array
+      return (trainers as Array<{trainer: Trainer, task: Task, location?: string}>).filter(
+        assignment => assignment.trainer.specialization?.includes(selectedTechFilter)
+      );
     } else {
-      // This is the trainers array (Trainer[])
-      return (items as Trainer[])
-        .filter(trainer => 
-          trainer.specialization?.includes(selectedTechFilter)
-        ) as unknown as T;
+      // This is the trainers array
+      return (trainers as Trainer[]).filter(
+        trainer => trainer.specialization?.includes(selectedTechFilter)
+      );
     }
   };
   
