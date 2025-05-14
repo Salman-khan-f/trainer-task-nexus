@@ -3,7 +3,7 @@ import React from 'react';
 
 export const TaskFormStyles: React.FC = () => {
   return (
-    <style jsx="true">{`
+    <style>{`
       .task-form-overlay {
         position: fixed;
         top: 0;

@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import { CalendarEvent } from '../types';
 import { Calendar as ShadcnCalendar } from './ui/calendar';
 import { format } from 'date-fns';
 import { Button } from './ui/button';
+import { DateRange } from 'react-day-picker';
 
 interface CalendarProps {
   events: CalendarEvent[];
@@ -14,10 +14,7 @@ interface CalendarProps {
 const Calendar: React.FC<CalendarProps> = ({ events, onDateClick, onEventClick }) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [dateRange, setDateRange] = useState<{
-    from: Date | undefined;
-    to: Date | undefined;
-  }>({
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: undefined,
     to: undefined,
   });
@@ -74,8 +71,10 @@ const Calendar: React.FC<CalendarProps> = ({ events, onDateClick, onEventClick }
 
   const generateCSV = () => {
     // Default to current month if no range selected
-    const startDate = dateRange.from || new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
-    const endDate = dateRange.to || new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0);
+    const startDate = dateRange?.from || new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
+    const endDate = dateRange?.to || new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0);
+    
+    if (!startDate) return; // Safety check
     
     // Headers for CSV
     let csvContent = "Date,TrainerID,TrainerName,Email,Phone,Task,TaskType,Role,ClientLocation,Status\n";
@@ -84,7 +83,7 @@ const Calendar: React.FC<CalendarProps> = ({ events, onDateClick, onEventClick }
     const dateRangeArray: Date[] = [];
     let currentIterationDate = new Date(startDate);
     
-    while (currentIterationDate <= endDate) {
+    while (currentIterationDate <= (endDate || startDate)) {
       dateRangeArray.push(new Date(currentIterationDate));
       currentIterationDate.setDate(currentIterationDate.getDate() + 1);
     }
@@ -113,13 +112,13 @@ const Calendar: React.FC<CalendarProps> = ({ events, onDateClick, onEventClick }
     const encodedUri = encodeURI("data:text/csv;charset=utf-8," + csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `calendar_${format(startDate, 'yyyy-MM-dd')}_to_${format(endDate, 'yyyy-MM-dd')}.csv`);
+    link.setAttribute("download", `calendar_${format(startDate, 'yyyy-MM-dd')}_to_${format(endDate || startDate, 'yyyy-MM-dd')}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     
     // Reset date range after download
-    setDateRange({ from: undefined, to: undefined });
+    setDateRange(undefined);
     setShowDatePicker(false);
   };
 
@@ -200,11 +199,7 @@ const Calendar: React.FC<CalendarProps> = ({ events, onDateClick, onEventClick }
               <ShadcnCalendar
                 mode="range"
                 selected={dateRange}
-                onSelect={(range) => {
-                  if (range) {
-                    setDateRange(range);
-                  }
-                }}
+                onSelect={setDateRange}
                 className="date-picker p-3 pointer-events-auto"
                 numberOfMonths={2}
               />
@@ -213,7 +208,7 @@ const Calendar: React.FC<CalendarProps> = ({ events, onDateClick, onEventClick }
               <Button 
                 variant="default"
                 onClick={generateCSV}
-                disabled={!dateRange.from}
+                disabled={!dateRange?.from}
                 className="download-btn"
               >
                 Download CSV
