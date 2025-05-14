@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
@@ -34,6 +35,9 @@ const SuperAdminDashboard: React.FC = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [trainerAssignments, setTrainerAssignments] = useState<Array<{trainer: Trainer, task: Task, location?: string}>>([]);
+  const [nonAssignedTrainers, setNonAssignedTrainers] = useState<Trainer[]>([]);
+  const [techStackFilters, setTechStackFilters] = useState<string[]>([]);
+  const [selectedTechFilter, setSelectedTechFilter] = useState<string | null>(null);
   
   // Redirect if not logged in or not admin
   useEffect(() => {
@@ -65,6 +69,19 @@ const SuperAdminDashboard: React.FC = () => {
     
     setCalendarEvents(events);
   }, [tasks]);
+
+  // Extract unique tech stacks from trainers
+  useEffect(() => {
+    const techStacks = new Set<string>();
+    trainers.forEach(trainer => {
+      if (trainer.specialization) {
+        trainer.specialization.forEach(tech => {
+          techStacks.add(tech);
+        });
+      }
+    });
+    setTechStackFilters(Array.from(techStacks));
+  }, []);
   
   const handleDateClick = (date: string) => {
     // Get all tasks for this date
@@ -88,7 +105,14 @@ const SuperAdminDashboard: React.FC = () => {
       };
     });
     
+    // Get list of trainers who are not assigned tasks on this date
+    const assignedTrainerIds = tasksOnDate.map(task => task.trainerId);
+    const unassignedTrainers = trainers.filter(trainer => 
+      !assignedTrainerIds.includes(trainer.id)
+    );
+    
     setTrainerAssignments(assignments);
+    setNonAssignedTrainers(unassignedTrainers);
     setSelectedDate(date);
   };
   
@@ -141,6 +165,22 @@ const SuperAdminDashboard: React.FC = () => {
       deleteTask(detailTask.id);
       setTasks(prevTasks => prevTasks.filter(task => task.id !== detailTask.id));
       setDetailTask(null);
+    }
+  };
+
+  const filterTrainersByTech = (trainers: Array<{trainer: Trainer, task: Task, location?: string}> | Trainer[]) => {
+    if (!selectedTechFilter) return trainers;
+    
+    if ('task' in trainers[0]) {
+      // This is the assignments array
+      return (trainers as Array<{trainer: Trainer, task: Task, location?: string}>).filter(
+        assignment => assignment.trainer.specialization?.includes(selectedTechFilter)
+      );
+    } else {
+      // This is the trainers array
+      return (trainers as Trainer[]).filter(
+        trainer => trainer.specialization?.includes(selectedTechFilter)
+      );
     }
   };
   
@@ -199,7 +239,20 @@ const SuperAdminDashboard: React.FC = () => {
               {selectedDate && (
                 <div className="day-assignments-container">
                   <div className="day-assignments-header">
-                    <h3>Trainer Assignments - {new Date(selectedDate).toLocaleDateString()}</h3>
+                    <h3>Assignments - {new Date(selectedDate).toLocaleDateString()}</h3>
+                    <div className="filter-section">
+                      <label>Filter by Tech Stack:</label>
+                      <select 
+                        value={selectedTechFilter || ''}
+                        onChange={(e) => setSelectedTechFilter(e.target.value || null)}
+                        className="tech-filter"
+                      >
+                        <option value="">All Tech Stacks</option>
+                        {techStackFilters.map(tech => (
+                          <option key={tech} value={tech}>{tech}</option>
+                        ))}
+                      </select>
+                    </div>
                     <button 
                       className="btn-outline btn-sm" 
                       onClick={() => setSelectedDate(null)}
@@ -208,47 +261,162 @@ const SuperAdminDashboard: React.FC = () => {
                     </button>
                   </div>
                   
-                  {trainerAssignments.length === 0 ? (
-                    <p className="no-assignments">No trainers assigned for this date.</p>
-                  ) : (
-                    <div className="day-assignments-list">
-                      {trainerAssignments.map((assignment, index) => (
-                        <div className="assignment-card" key={index}>
-                          <div className="assignment-header">
-                            <h4>{assignment.trainer.name}</h4>
-                            <div className="assignment-actions">
-                              <button 
-                                className="btn-link"
-                                onClick={() => handleViewProfile(assignment.trainer)}
-                              >
-                                View Profile
-                              </button>
-                            </div>
-                          </div>
-                          <div className="assignment-details">
-                            <div className="assignment-detail">
-                              <span className="detail-label">Task:</span>
-                              <span className="detail-value">{assignment.task.title}</span>
-                            </div>
-                            <div className="assignment-detail">
-                              <span className="detail-label">Type:</span>
-                              <span className="detail-value">{assignment.task.type === 'training' ? 'Training' : 'Non-Training'}</span>
-                            </div>
-                            {assignment.location && (
-                              <div className="assignment-detail">
-                                <span className="detail-label">Client/Location:</span>
-                                <span className="detail-value">{assignment.location}</span>
+                  {/* Training Assignments Section */}
+                  <div className="assignments-section">
+                    <h4 className="section-header training-header">Trainer Assignments - Client/Location</h4>
+                    
+                    {filterTrainersByTech(trainerAssignments).filter(assignment => assignment.task.type === 'training').length > 0 ? (
+                      <div className="day-assignments-list">
+                        {filterTrainersByTech(trainerAssignments)
+                          .filter(assignment => assignment.task.type === 'training')
+                          .map((assignment, index) => (
+                            <div className="assignment-card" key={index}>
+                              <div className="assignment-header">
+                                <h4>{assignment.trainer.name}</h4>
+                                <div className="assignment-actions">
+                                  <button 
+                                    className="btn-link"
+                                    onClick={() => handleViewProfile(assignment.trainer)}
+                                  >
+                                    View Profile
+                                  </button>
+                                </div>
                               </div>
-                            )}
-                            <div className="assignment-detail">
-                              <span className="detail-label">Status:</span>
-                              <span className={`status-badge status-${assignment.task.status}`}>{assignment.task.status}</span>
+                              <div className="assignment-details">
+                                <div className="assignment-detail">
+                                  <span className="detail-label">Task:</span>
+                                  <span className="detail-value">{assignment.task.title}</span>
+                                </div>
+                                <div className="assignment-detail">
+                                  <span className="detail-label">Type:</span>
+                                  <span className="detail-value">Training</span>
+                                </div>
+                                {assignment.location && (
+                                  <div className="assignment-detail">
+                                    <span className="detail-label">Client/Location:</span>
+                                    <span className="detail-value">{assignment.location}</span>
+                                  </div>
+                                )}
+                                <div className="assignment-detail">
+                                  <span className="detail-label">Status:</span>
+                                  <span className={`status-badge status-${assignment.task.status}`}>{assignment.task.status}</span>
+                                </div>
+                                <div className="assignment-detail">
+                                  <span className="detail-label">Tech Stack:</span>
+                                  <div className="tech-stack-tags">
+                                    {assignment.trainer.specialization?.map(tech => (
+                                      <span key={tech} className="tech-tag">{tech}</span>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))
+                        }
+                      </div>
+                    ) : (
+                      <p className="no-assignments">No trainers assigned for training on this date.</p>
+                    )}
+                  </div>
+                  
+                  {/* Non-Training Assignments Section */}
+                  <div className="assignments-section">
+                    <h4 className="section-header non-training-header">Non-Available Trainers - Task Allocated</h4>
+                    
+                    {filterTrainersByTech(trainerAssignments).filter(assignment => assignment.task.type !== 'training').length > 0 ? (
+                      <div className="day-assignments-list">
+                        {filterTrainersByTech(trainerAssignments)
+                          .filter(assignment => assignment.task.type !== 'training')
+                          .map((assignment, index) => (
+                            <div className="assignment-card" key={index}>
+                              <div className="assignment-header">
+                                <h4>{assignment.trainer.name}</h4>
+                                <div className="assignment-actions">
+                                  <button 
+                                    className="btn-link"
+                                    onClick={() => handleViewProfile(assignment.trainer)}
+                                  >
+                                    View Profile
+                                  </button>
+                                </div>
+                              </div>
+                              <div className="assignment-details">
+                                <div className="assignment-detail">
+                                  <span className="detail-label">Task:</span>
+                                  <span className="detail-value">{assignment.task.title}</span>
+                                </div>
+                                <div className="assignment-detail">
+                                  <span className="detail-label">Type:</span>
+                                  <span className="detail-value">Non-Training</span>
+                                </div>
+                                <div className="assignment-detail">
+                                  <span className="detail-label">Status:</span>
+                                  <span className={`status-badge status-${assignment.task.status}`}>{assignment.task.status}</span>
+                                </div>
+                                <div className="assignment-detail">
+                                  <span className="detail-label">Tech Stack:</span>
+                                  <div className="tech-stack-tags">
+                                    {assignment.trainer.specialization?.map(tech => (
+                                      <span key={tech} className="tech-tag">{tech}</span>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))
+                        }
+                      </div>
+                    ) : (
+                      <p className="no-assignments">No trainers assigned for non-training tasks on this date.</p>
+                    )}
+                  </div>
+                  
+                  {/* Available Trainers Section */}
+                  <div className="assignments-section">
+                    <h4 className="section-header available-header">Available Trainers - No Task Allocated</h4>
+                    
+                    {filterTrainersByTech(nonAssignedTrainers).length > 0 ? (
+                      <div className="day-assignments-list">
+                        {filterTrainersByTech(nonAssignedTrainers).map((trainer, index) => (
+                          <div className="assignment-card" key={index}>
+                            <div className="assignment-header">
+                              <h4>{trainer.name}</h4>
+                              <div className="assignment-actions">
+                                <button 
+                                  className="btn-link"
+                                  onClick={() => handleViewProfile(trainer)}
+                                >
+                                  View Profile
+                                </button>
+                                <button 
+                                  className="btn-link"
+                                  onClick={() => handleTrainerSelect(trainer)}
+                                >
+                                  Assign Task
+                                </button>
+                              </div>
+                            </div>
+                            <div className="assignment-details">
+                              <div className="assignment-detail">
+                                <span className="detail-label">Position:</span>
+                                <span className="detail-value">{trainer.position}</span>
+                              </div>
+                              <div className="assignment-detail">
+                                <span className="detail-label">Tech Stack:</span>
+                                <div className="tech-stack-tags">
+                                  {trainer.specialization?.map(tech => (
+                                    <span key={tech} className="tech-tag">{tech}</span>
+                                  ))}
+                                </div>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="no-assignments">No available trainers on this date.</p>
+                    )}
+                  </div>
                 </div>
               )}
             </>
@@ -370,6 +538,44 @@ const SuperAdminDashboard: React.FC = () => {
         .day-assignments-header h3 {
           margin: 0;
         }
+
+        .filter-section {
+          display: flex;
+          align-items: center;
+          gap: var(--spacing-sm);
+        }
+
+        .tech-filter {
+          background: white;
+          border: none;
+          color: var(--text-dark);
+          padding: 4px 8px;
+          border-radius: 4px;
+          width: 160px;
+        }
+        
+        .assignments-section {
+          margin-bottom: var(--spacing-md);
+        }
+
+        .section-header {
+          padding: var(--spacing-sm) var(--spacing-md);
+          margin: 0;
+          color: white;
+          font-size: 1.1rem;
+        }
+
+        .training-header {
+          background-color: #4CAF50;
+        }
+
+        .non-training-header {
+          background-color: #f44336;
+        }
+
+        .available-header {
+          background-color: #2196F3;
+        }
         
         .day-assignments-list {
           padding: var(--spacing-md);
@@ -388,6 +594,7 @@ const SuperAdminDashboard: React.FC = () => {
           border: 1px solid var(--gray-medium);
           border-radius: var(--border-radius);
           overflow: hidden;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.12);
         }
         
         .assignment-header {
@@ -420,6 +627,20 @@ const SuperAdminDashboard: React.FC = () => {
         
         .detail-value {
           flex: 1;
+        }
+
+        .tech-stack-tags {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 4px;
+        }
+
+        .tech-tag {
+          font-size: 0.75rem;
+          background-color: #e0e0e0;
+          padding: 2px 8px;
+          border-radius: 12px;
+          display: inline-block;
         }
         
         .status-badge {
@@ -459,6 +680,11 @@ const SuperAdminDashboard: React.FC = () => {
           padding: 4px 8px;
           font-size: 0.8rem;
         }
+
+        .assignment-actions {
+          display: flex;
+          gap: 8px;
+        }
         
         @media (max-width: 768px) {
           .dashboard-header {
@@ -478,6 +704,16 @@ const SuperAdminDashboard: React.FC = () => {
           
           .day-assignments-list {
             grid-template-columns: 1fr;
+          }
+
+          .day-assignments-header {
+            flex-direction: column;
+            gap: var(--spacing-sm);
+            align-items: flex-start;
+          }
+
+          .filter-section {
+            width: 100%;
           }
         }
       `}</style>
