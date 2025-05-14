@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
@@ -33,6 +32,8 @@ const SuperAdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'calendar' | 'trainers' | 'trainersTable'>('calendar');
   const [selectedTrainer, setSelectedTrainer] = useState<Trainer | null>(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [trainerAssignments, setTrainerAssignments] = useState<Array<{trainer: Trainer, task: Task, location?: string}>>([]);
   
   // Redirect if not logged in or not admin
   useEffect(() => {
@@ -66,9 +67,29 @@ const SuperAdminDashboard: React.FC = () => {
   }, [tasks]);
   
   const handleDateClick = (date: string) => {
-    // Open form to create new task on this date
-    setSelectedTask(null);
-    setIsTaskFormOpen(true);
+    // Get all tasks for this date
+    const tasksOnDate = tasks.filter(task => {
+      const taskStart = new Date(task.startDate);
+      const taskEnd = new Date(task.endDate);
+      const selectedDate = new Date(date);
+      
+      return selectedDate >= taskStart && selectedDate <= taskEnd;
+    });
+    
+    // Build list of trainer assignments for this date
+    const assignments = tasksOnDate.map(task => {
+      const trainer = getTrainerById(task.trainerId);
+      const location = task.collegeId ? getCollegeById(task.collegeId)?.name : undefined;
+      
+      return {
+        trainer: trainer!,
+        task,
+        location
+      };
+    });
+    
+    setTrainerAssignments(assignments);
+    setSelectedDate(date);
   };
   
   const handleEventClick = (event: CalendarEvent) => {
@@ -168,11 +189,69 @@ const SuperAdminDashboard: React.FC = () => {
         
         <div className="dashboard-main">
           {activeTab === 'calendar' ? (
-            <Calendar 
-              events={calendarEvents}
-              onDateClick={handleDateClick}
-              onEventClick={handleEventClick}
-            />
+            <>
+              <Calendar 
+                events={calendarEvents}
+                onDateClick={handleDateClick}
+                onEventClick={handleEventClick}
+              />
+              
+              {selectedDate && (
+                <div className="day-assignments-container">
+                  <div className="day-assignments-header">
+                    <h3>Trainer Assignments - {new Date(selectedDate).toLocaleDateString()}</h3>
+                    <button 
+                      className="btn-outline btn-sm" 
+                      onClick={() => setSelectedDate(null)}
+                    >
+                      Close
+                    </button>
+                  </div>
+                  
+                  {trainerAssignments.length === 0 ? (
+                    <p className="no-assignments">No trainers assigned for this date.</p>
+                  ) : (
+                    <div className="day-assignments-list">
+                      {trainerAssignments.map((assignment, index) => (
+                        <div className="assignment-card" key={index}>
+                          <div className="assignment-header">
+                            <h4>{assignment.trainer.name}</h4>
+                            <div className="assignment-actions">
+                              <button 
+                                className="btn-link"
+                                onClick={() => handleViewProfile(assignment.trainer)}
+                              >
+                                View Profile
+                              </button>
+                            </div>
+                          </div>
+                          <div className="assignment-details">
+                            <div className="assignment-detail">
+                              <span className="detail-label">Task:</span>
+                              <span className="detail-value">{assignment.task.title}</span>
+                            </div>
+                            <div className="assignment-detail">
+                              <span className="detail-label">Type:</span>
+                              <span className="detail-value">{assignment.task.type === 'training' ? 'Training' : 'Non-Training'}</span>
+                            </div>
+                            {assignment.location && (
+                              <div className="assignment-detail">
+                                <span className="detail-label">Client/Location:</span>
+                                <span className="detail-value">{assignment.location}</span>
+                              </div>
+                            )}
+                            <div className="assignment-detail">
+                              <span className="detail-label">Status:</span>
+                              <span className={`status-badge status-${assignment.task.status}`}>{assignment.task.status}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
           ) : activeTab === 'trainers' ? (
             <TrainerList 
               trainers={trainers}
@@ -270,6 +349,117 @@ const SuperAdminDashboard: React.FC = () => {
           margin-bottom: var(--spacing-lg);
         }
         
+        /* Day assignments styles */
+        .day-assignments-container {
+          margin-top: var(--spacing-md);
+          background-color: white;
+          border: 1px solid var(--gray-medium);
+          border-radius: var(--border-radius);
+          overflow: hidden;
+        }
+        
+        .day-assignments-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: var(--spacing-md);
+          background-color: var(--primary-light);
+          color: white;
+        }
+        
+        .day-assignments-header h3 {
+          margin: 0;
+        }
+        
+        .day-assignments-list {
+          padding: var(--spacing-md);
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+          gap: var(--spacing-md);
+        }
+        
+        .no-assignments {
+          padding: var(--spacing-md);
+          text-align: center;
+          color: var(--gray-dark);
+        }
+        
+        .assignment-card {
+          border: 1px solid var(--gray-medium);
+          border-radius: var(--border-radius);
+          overflow: hidden;
+        }
+        
+        .assignment-header {
+          background-color: var(--gray-light);
+          padding: var(--spacing-sm) var(--spacing-md);
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        
+        .assignment-header h4 {
+          margin: 0;
+          font-size: 1rem;
+        }
+        
+        .assignment-details {
+          padding: var(--spacing-md);
+        }
+        
+        .assignment-detail {
+          display: flex;
+          margin-bottom: var(--spacing-xs);
+        }
+        
+        .detail-label {
+          width: 120px;
+          font-weight: 500;
+          color: var(--gray-dark);
+        }
+        
+        .detail-value {
+          flex: 1;
+        }
+        
+        .status-badge {
+          display: inline-block;
+          padding: 2px 8px;
+          border-radius: 12px;
+          font-size: 0.8rem;
+          text-transform: capitalize;
+        }
+        
+        .status-pending {
+          background-color: var(--warning-light);
+          color: var(--warning);
+        }
+        
+        .status-in-progress {
+          background-color: var(--info-light);
+          color: var(--info);
+        }
+        
+        .status-completed {
+          background-color: var(--success-light);
+          color: var(--success);
+        }
+        
+        .btn-link {
+          background: none;
+          border: none;
+          padding: 0;
+          font: inherit;
+          color: var(--primary);
+          cursor: pointer;
+          text-decoration: underline;
+        }
+        
+        .btn-sm {
+          padding: 4px 8px;
+          font-size: 0.8rem;
+        }
+        
         @media (max-width: 768px) {
           .dashboard-header {
             flex-direction: column;
@@ -284,6 +474,10 @@ const SuperAdminDashboard: React.FC = () => {
           .tab-btn {
             flex: 1;
             text-align: center;
+          }
+          
+          .day-assignments-list {
+            grid-template-columns: 1fr;
           }
         }
       `}</style>

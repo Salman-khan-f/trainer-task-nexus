@@ -20,13 +20,13 @@ const TrainingFields: React.FC<TrainingFieldsProps> = ({
   return (
     <>
       <div className="form-group">
-        <label>College/Location</label>
+        <label>Client/Location</label>
         <select
           value={collegeId}
           onChange={(e) => onCollegeChange(e.target.value)}
           required
         >
-          <option value="">-- Select College --</option>
+          <option value="">-- Select Client/Location --</option>
           {colleges.map(college => (
             <option key={college.id} value={college.id}>
               {college.name} ({college.location})
