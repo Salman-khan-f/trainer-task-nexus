@@ -1,66 +1,192 @@
+
 import { Trainer, College, Task, UserCredentials } from '../types';
 
-// Mock trainer data (as if imported from Excel) with enhanced details
-export const trainers: Trainer[] = Array.from({ length: 50 }, (_, i) => {
-  const id = `Neo${i + 1}`;
-  const specializations = getRandomSpecializations();
-  
-  return {
-    id,
-    name: `Trainer ${i + 1}`,
-    email: `trainer${i + 1}@example.com`,
-    phone: `555-000-${1000 + i}`,
-    specialization: specializations,
-    availability: Math.random() > 0.2, // 80% are available
-    education: Math.random() > 0.5 ? "B.E Computer Science Engineering" : "M.Sc Computer Science",
-    position: "Technical Trainer",
-    areaOfExpertise: {
-      programmingLanguages: getExpertiseBasedOnSpecialization(specializations, 'language'),
-      problemSolving: Math.random() > 0.5 ? "Data Structures and Algorithms" : "System Design",
-      cloudTechnologies: Math.random() > 0.5 ? "AWS Cloud Architect" : "Azure Cloud Services"
-    },
-    workExperience: [
-      {
-        position: "Technical Trainer",
-        company: "iamneo",
-        duration: "August 2023 - Present"
+// Updated trainer data with 10 specific trainers
+export const trainers: Trainer[] = [
+  {
+    id: 'neo10172',
+    name: 'Aravindhan S',
+    email: 'aravindhan.s@iamneo.ai',
+    phone: '6381466026',
+    specialization: ['JavaScript'],
+    availability: true,
+    allocations: {
+      '2025-04-01': {
+        task: 'Not alloted',
+        role: 'Not alloted'
       },
-      {
-        position: "Career Development Coach",
-        company: "ETHNUS Consultancy",
-        duration: "June 2022 - June 2023"
+      '2025-04-02': {
+        task: 'Not alloted',
+        role: 'Not alloted'
       }
-    ],
-    bio: `Dedicated Career Development Coach and Technical Trainer with a strong technical foundation in ${specializations.join(', ')}. Experienced in guiding and mentoring college students and early-career professionals.`
-  };
-});
-
-function getExpertiseBasedOnSpecialization(specializations: string[], type: 'language' | 'cloud') {
-  if (type === 'language') {
-    if (specializations.includes('React')) return 'JavaScript, TypeScript, React';
-    if (specializations.includes('Java')) return 'Java, Spring Boot';
-    if (specializations.includes('Python')) return 'Python, Django';
-    if (specializations.includes('DSA')) return 'C++, Java';
-    return 'JavaScript, Java, Python';
-  }
-  
-  return 'AWS, Azure';
-}
-
-function getRandomSpecializations() {
-  const specializations = ['React', 'DSA', 'SDET', 'JavaScript', 'Python', 'Java', 'DevOps'];
-  const count = Math.floor(Math.random() * 3) + 1; // 1-3 specializations
-  const result = [];
-  
-  for (let i = 0; i < count; i++) {
-    const index = Math.floor(Math.random() * specializations.length);
-    if (!result.includes(specializations[index])) {
-      result.push(specializations[index]);
+    }
+  },
+  {
+    id: 'neo/c/10301',
+    name: 'Bindhiya J',
+    email: 'bindhiya.j@iamneo.ai',
+    phone: '8925702124',
+    specialization: ['C++', 'DSA'],
+    availability: true,
+    allocations: {
+      '2025-04-01': {
+        task: 'Parul - C++, DSA',
+        role: 'TA'
+      },
+      '2025-04-02': {
+        task: 'Parul - C++',
+        role: 'TA'
+      }
+    }
+  },
+  {
+    id: 'neo10370',
+    name: 'Denis Anto Bosco J',
+    email: 'denisanto.bosco@iamneo.ai',
+    phone: '6381035379',
+    specialization: ['C++', 'DSA'],
+    availability: true,
+    allocations: {
+      '2025-04-01': {
+        task: 'Parul - C++, DSA',
+        role: 'Trainer'
+      },
+      '2025-04-02': {
+        task: 'Parul - C++',
+        role: 'Trainer'
+      }
+    }
+  },
+  {
+    id: 'neo10377',
+    name: 'Devisri Shanmugam',
+    email: 'devisri.s@iamneo.ai',
+    phone: '9629984527',
+    specialization: ['JavaScript'],
+    availability: true,
+    allocations: {
+      '2025-04-01': {
+        task: 'Not alloted',
+        role: 'Not alloted'
+      },
+      '2025-04-02': {
+        task: 'Not alloted',
+        role: 'Not alloted'
+      }
+    }
+  },
+  {
+    id: 'neo10390',
+    name: 'Gokulnath S',
+    email: 'gokulnath.s@iamneo.ai',
+    phone: '8073844150',
+    specialization: ['JavaScript'],
+    availability: true,
+    allocations: {
+      '2025-04-01': {
+        task: 'Not alloted',
+        role: 'Not alloted'
+      },
+      '2025-04-02': {
+        task: 'Not alloted',
+        role: 'Not alloted'
+      }
+    }
+  },
+  {
+    id: 'neo10265',
+    name: 'Karan Dharmalingam',
+    email: 'karan@iamneo.ai',
+    phone: '8248086234',
+    specialization: ['JavaScript', 'React'],
+    availability: true,
+    allocations: {
+      '2025-04-01': {
+        task: 'Not alloted',
+        role: 'Not alloted'
+      },
+      '2025-04-02': {
+        task: 'Not alloted',
+        role: 'Not alloted'
+      }
+    }
+  },
+  {
+    id: 'neo10367',
+    name: 'Mohammad Abrar',
+    email: 'mohammad.abrar@iamneo.ai',
+    phone: '8220741428',
+    specialization: ['JavaScript', 'React'],
+    availability: true,
+    allocations: {
+      '2025-04-01': {
+        task: 'Not alloted',
+        role: 'Not alloted'
+      },
+      '2025-04-02': {
+        task: 'Not alloted',
+        role: 'Not alloted'
+      }
+    }
+  },
+  {
+    id: 'neo/c/10278',
+    name: 'Ramachandramoorthy K B',
+    email: 'machandra.moorthy@iamneo.ai',
+    phone: '9487057895',
+    specialization: ['C++', 'DSA'],
+    availability: true,
+    allocations: {
+      '2025-04-01': {
+        task: 'Parul - C++, DSA',
+        role: 'TA'
+      },
+      '2025-04-02': {
+        task: 'Parul - C++',
+        role: 'TA'
+      }
+    }
+  },
+  {
+    id: 'neo10335',
+    name: 'Salman Khan',
+    email: 'salmankhan@iamneo.ai',
+    phone: '9344366702',
+    specialization: ['JavaScript', 'React'],
+    availability: true,
+    allocations: {
+      '2025-04-01': {
+        task: 'Not alloted',
+        role: 'Not alloted'
+      },
+      '2025-04-02': {
+        task: 'Not alloted',
+        role: 'Not alloted'
+      }
+    }
+  },
+  {
+    id: 'neo10376',
+    name: 'Surya K',
+    email: 'surya.k@iamneo.ai',
+    phone: '8220924040',
+    specialization: ['JavaScript'],
+    availability: true,
+    allocations: {
+      '2025-04-01': {
+        task: 'Not alloted',
+        role: 'Not alloted'
+      },
+      '2025-04-02': {
+        task: 'Not alloted',
+        role: 'Not alloted'
+      }
     }
   }
-  
-  return result;
-}
+];
+
+// Now we need to update the Trainer type in types/index.ts to include the allocations
+// Let's also update the UserCredentials to match our new trainer IDs
 
 // Mock college data
 export const colleges: College[] = [
