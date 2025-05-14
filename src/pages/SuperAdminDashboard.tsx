@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
@@ -188,6 +187,20 @@ const SuperAdminDashboard: React.FC = () => {
     return items;
   };
   
+  const handleEventsImported = (importedEvents: CalendarEvent[]) => {
+    // Update tasks state
+    setTasks(prevTasks => {
+      const updatedTasks = [...prevTasks];
+      // Add only non-duplicate tasks
+      importedEvents.forEach(event => {
+        if (!updatedTasks.find(task => task.id === event.id)) {
+          updatedTasks.push(event);
+        }
+      });
+      return updatedTasks;
+    });
+  };
+  
   if (!user || user.role !== 'superadmin') {
     return null;
   }
@@ -238,6 +251,7 @@ const SuperAdminDashboard: React.FC = () => {
                 events={calendarEvents}
                 onDateClick={handleDateClick}
                 onEventClick={handleEventClick}
+                onEventsImported={handleEventsImported}
               />
               
               {selectedDate && (

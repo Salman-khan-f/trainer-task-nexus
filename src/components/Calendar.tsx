@@ -1,23 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { CalendarEvent } from '../types';
 import { Calendar as ShadcnCalendar } from './ui/calendar';
 import { format } from 'date-fns';
 import { Button } from './ui/button';
 import { DateRange } from 'react-day-picker';
+import { importEventsFromJSON, importEventsFromExcel, processImportedEvents } from '../utils/importUtils';
+import { toast } from '../hooks/use-toast';
+import { FileJson, FileExcel, Import } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { Textarea } from './ui/textarea';
 
 interface CalendarProps {
   events: CalendarEvent[];
   onDateClick: (date: string) => void;
   onEventClick: (event: CalendarEvent) => void;
+  onEventsImported?: (newEvents: CalendarEvent[]) => void;
 }
 
-const Calendar: React.FC<CalendarProps> = ({ events, onDateClick, onEventClick }) => {
+const Calendar: React.FC<CalendarProps> = ({ events, onDateClick, onEventClick, onEventsImported }) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: undefined,
     to: undefined,
   });
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [jsonInput, setJsonInput] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isImporting, setIsImporting] = useState(false);
 
   // Get the first day of the month
   const firstDay = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
@@ -176,6 +187,86 @@ const Calendar: React.FC<CalendarProps> = ({ events, onDateClick, onEventClick }
     return days;
   };
 
+  const handleImportJSON = () => {
+    setIsImporting(true);
+    
+    try {
+      const result = importEventsFromJSON(jsonInput);
+      
+      if (result.success && result.events) {
+        const importedEvents = processImportedEvents(result.events);
+        toast({
+          title: "Import Successful",
+          description: result.message,
+        });
+        
+        if (onEventsImported) {
+          onEventsImported(importedEvents as CalendarEvent[]);
+        }
+        
+        setShowImportDialog(false);
+        setJsonInput('');
+      } else {
+        toast({
+          title: "Import Failed",
+          description: result.message,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Import Error",
+        description: error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsImporting(false);
+    }
+  };
+  
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    setIsImporting(true);
+    
+    try {
+      const result = await importEventsFromExcel(file);
+      
+      if (result.success && result.events) {
+        const importedEvents = processImportedEvents(result.events);
+        toast({
+          title: "Import Successful",
+          description: result.message,
+        });
+        
+        if (onEventsImported) {
+          onEventsImported(importedEvents as CalendarEvent[]);
+        }
+        
+        setShowImportDialog(false);
+      } else {
+        toast({
+          title: "Import Failed",
+          description: result.message,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Import Error",
+        description: error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsImporting(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
   return (
     <div className="calendar-container">
       <div className="calendar-header">
@@ -185,13 +276,108 @@ const Calendar: React.FC<CalendarProps> = ({ events, onDateClick, onEventClick }
       </div>
 
       <div className="calendar-toolbar">
-        <Button 
-          variant="outline" 
-          onClick={() => setShowDatePicker(!showDatePicker)}
-          className="export-btn"
-        >
-          {showDatePicker ? 'Cancel' : 'Export Calendar'}
-        </Button>
+        <div className="toolbar-actions">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowDatePicker(!showDatePicker)}
+            className="export-btn"
+          >
+            {showDatePicker ? 'Cancel' : 'Export Calendar'}
+          </Button>
+          
+          <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="import-btn">
+                <Import className="mr-2 h-4 w-4" />
+                Import Data
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Import Calendar Data</DialogTitle>
+              </DialogHeader>
+              
+              <Tabs defaultValue="json">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="json">
+                    <FileJson className="mr-2 h-4 w-4" /> JSON
+                  </TabsTrigger>
+                  <TabsTrigger value="excel">
+                    <FileExcel className="mr-2 h-4 w-4" /> Excel
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="json" className="mt-4">
+                  <div className="flex flex-col gap-4">
+                    <Textarea
+                      placeholder="Paste your JSON data here..."
+                      className="min-h-[200px]"
+                      value={jsonInput}
+                      onChange={(e) => setJsonInput(e.target.value)}
+                    />
+                    <Button 
+                      onClick={handleImportJSON}
+                      disabled={!jsonInput.trim() || isImporting}
+                    >
+                      {isImporting ? 'Importing...' : 'Import JSON'}
+                    </Button>
+                    
+                    <div className="text-sm text-gray-500">
+                      <p>JSON format should be an array of events with the following structure:</p>
+                      <pre className="bg-gray-100 p-2 rounded text-xs mt-2 overflow-auto">
+{`[
+  {
+    "trainerId": "Neo1",
+    "type": "training",
+    "title": "React Training",
+    "description": "Description here",
+    "startDate": "2025-05-20",
+    "endDate": "2025-05-21",
+    "trainerRole": "trainer"
+  }
+]`}
+                      </pre>
+                    </div>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="excel" className="mt-4">
+                  <div className="flex flex-col gap-4">
+                    <input
+                      type="file"
+                      accept=".xlsx,.xls"
+                      onChange={handleFileChange}
+                      ref={fileInputRef}
+                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    />
+                    
+                    <div className="text-sm text-gray-500 mt-2">
+                      <p>Excel file should have the following columns:</p>
+                      <ul className="list-disc pl-5 mt-2">
+                        <li>Date (YYYY-MM-DD)</li>
+                        <li>TrainerID</li>
+                        <li>Task (title)</li>
+                        <li>TaskType (training/non-training)</li>
+                        <li>Role (trainer/ta)</li>
+                        <li>Status (pending/in-progress/completed)</li>
+                      </ul>
+                      
+                      <p className="mt-2">
+                        <a 
+                          href="/template.xlsx" 
+                          download 
+                          className="text-blue-600 hover:underline"
+                        >
+                          Download template
+                        </a>
+                      </p>
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </DialogContent>
+          </Dialog>
+        </div>
         
         {showDatePicker && (
           <div className="date-picker-container">
@@ -277,6 +463,25 @@ const Calendar: React.FC<CalendarProps> = ({ events, onDateClick, onEventClick }
           padding: var(--spacing-sm);
           border-bottom: 1px solid var(--gray-medium);
           position: relative;
+        }
+        
+        .toolbar-actions {
+          display: flex;
+          justify-content: space-between;
+          gap: var(--spacing-sm);
+          flex-wrap: wrap;
+        }
+        
+        .import-btn {
+          display: flex;
+          align-items: center;
+          background-color: #f0f9ff;
+          color: #3b82f6;
+          border-color: #93c5fd;
+        }
+        
+        .import-btn:hover {
+          background-color: #e0f2fe;
         }
         
         .date-picker-container {
@@ -409,7 +614,7 @@ const Calendar: React.FC<CalendarProps> = ({ events, onDateClick, onEventClick }
         }
 
         @media (max-width: 768px) {
-          .date-picker-actions {
+          .toolbar-actions {
             flex-direction: column;
           }
         }
