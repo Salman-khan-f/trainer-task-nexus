@@ -1,10 +1,12 @@
+
 import React, { useState } from 'react';
 import TaskBasicDetails from './task-form/TaskBasicDetails';
 import TrainerSelector from './task-form/TrainerSelector';
 import TrainingFields from './task-form/TrainingFields';
 import TrainerRoleSelector from './task-form/TrainerRoleSelector';
 import { TaskType, Task } from '../types';
-import { TaskFormStyles } from './styles/TaskFormStyles';
+import { TaskFormStyles } from './task-form/TaskFormStyles';
+import { trainers, colleges } from '../services/data';
 
 interface TaskFormProps {
   onSubmit: (taskData: Omit<Task, 'id'>) => void;
@@ -74,8 +76,9 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, onCancel, initialData, is
           />
           
           <TrainerSelector 
-            selectedTrainerId={trainerId}
-            onTrainerChange={setTrainerId}
+            trainerId={trainerId}
+            onTrainerSelect={setTrainerId}
+            trainers={trainers}
           />
           
           {/* Add the new TrainerRoleSelector component */}
@@ -87,14 +90,11 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, onCancel, initialData, is
           
           {taskType === 'training' && (
             <TrainingFields
-              startTime={startTime}
-              endTime={endTime}
               collegeId={collegeId}
               course={course}
-              onStartTimeChange={setStartTime}
-              onEndTimeChange={setEndTime}
-              onCollegeIdChange={setCollegeId}
+              onCollegeChange={setCollegeId}
               onCourseChange={setCourse}
+              colleges={colleges}
             />
           )}
           

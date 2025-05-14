@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
@@ -33,7 +34,7 @@ const SuperAdminDashboard: React.FC = () => {
   const [selectedTrainer, setSelectedTrainer] = useState<Trainer | null>(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [trainerAssignments, setTrainerAssignments] = useState<Array<{trainer: Trainer, task: Task, location?: string}>>([]);
+  const [trainerAssignments, setTrainerAssignments] = useState<TrainerAssignment[]>([]);
   const [nonAssignedTrainers, setNonAssignedTrainers] = useState<Trainer[]>([]);
   const [techStackFilters, setTechStackFilters] = useState<string[]>([]);
   const [selectedTechFilter, setSelectedTechFilter] = useState<string | null>(null);
@@ -170,17 +171,21 @@ const SuperAdminDashboard: React.FC = () => {
   const filterTrainersByTech = (items: TrainerAssignment[] | Trainer[]) => {
     if (!selectedTechFilter) return items;
     
-    if ('task' in items[0]) {
-      // This is the assignments array (TrainerAssignment[])
-      return (items as TrainerAssignment[]).filter(
-        assignment => assignment.trainer.specialization?.includes(selectedTechFilter)
-      );
-    } else {
-      // This is the trainers array (Trainer[])
-      return (items as Trainer[]).filter(
-        trainer => trainer.specialization?.includes(selectedTechFilter)
-      );
+    if (items.length > 0) {
+      if ('task' in items[0]) {
+        // This is the assignments array (TrainerAssignment[])
+        return (items as TrainerAssignment[]).filter(
+          assignment => assignment.trainer.specialization?.includes(selectedTechFilter)
+        );
+      } else {
+        // This is the trainers array (Trainer[])
+        return (items as Trainer[]).filter(
+          trainer => trainer.specialization?.includes(selectedTechFilter)
+        );
+      }
     }
+    
+    return items;
   };
   
   if (!user || user.role !== 'superadmin') {
@@ -264,11 +269,11 @@ const SuperAdminDashboard: React.FC = () => {
                   <div className="assignments-section">
                     <h4 className="section-header training-header">Trainer Assignments - Client/Location</h4>
                     
-                    {filterTrainersByTech(trainerAssignments).filter(assignment => 
+                    {(filterTrainersByTech(trainerAssignments) as TrainerAssignment[]).filter(assignment => 
                       assignment.task.type === 'training'
                     ).length > 0 ? (
                       <div className="day-assignments-list">
-                        {filterTrainersByTech(trainerAssignments)
+                        {(filterTrainersByTech(trainerAssignments) as TrainerAssignment[])
                           .filter(assignment => assignment.task.type === 'training')
                           .map((assignment, index) => (
                             <div className="assignment-card" key={index}>
@@ -331,11 +336,11 @@ const SuperAdminDashboard: React.FC = () => {
                   <div className="assignments-section">
                     <h4 className="section-header non-training-header">Non-Available Trainers - Task Allocated</h4>
                     
-                    {filterTrainersByTech(trainerAssignments).filter(assignment => 
+                    {(filterTrainersByTech(trainerAssignments) as TrainerAssignment[]).filter(assignment => 
                       assignment.task.type !== 'training'
                     ).length > 0 ? (
                       <div className="day-assignments-list">
-                        {filterTrainersByTech(trainerAssignments)
+                        {(filterTrainersByTech(trainerAssignments) as TrainerAssignment[])
                           .filter(assignment => assignment.task.type !== 'training')
                           .map((assignment, index) => (
                             <div className="assignment-card" key={index}>
@@ -385,9 +390,9 @@ const SuperAdminDashboard: React.FC = () => {
                   <div className="assignments-section">
                     <h4 className="section-header available-header">Available Trainers - No Task Allocated</h4>
                     
-                    {filterTrainersByTech(nonAssignedTrainers).length > 0 ? (
+                    {(filterTrainersByTech(nonAssignedTrainers) as Trainer[]).length > 0 ? (
                       <div className="day-assignments-list">
-                        {filterTrainersByTech(nonAssignedTrainers).map((trainer, index) => (
+                        {(filterTrainersByTech(nonAssignedTrainers) as Trainer[]).map((trainer, index) => (
                           <div className="assignment-card" key={index}>
                             <div className="assignment-header">
                               <h4>{trainer.name}</h4>

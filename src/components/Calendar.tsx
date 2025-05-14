@@ -12,7 +12,7 @@ interface CalendarProps {
 }
 
 const Calendar: React.FC<CalendarProps> = ({ events, onDateClick, onEventClick }) => {
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [dateRange, setDateRange] = useState<{
     from: Date | undefined;
@@ -23,9 +23,9 @@ const Calendar: React.FC<CalendarProps> = ({ events, onDateClick, onEventClick }
   });
 
   // Get the first day of the month
-  const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+  const firstDay = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
   // Get the last day of the month
-  const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+  const lastDay = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0);
   // Get the day of the week the month starts on (0 = Sunday, 6 = Saturday)
   const startDayOfWeek = firstDay.getDay();
   // Total days in month
@@ -33,12 +33,12 @@ const Calendar: React.FC<CalendarProps> = ({ events, onDateClick, onEventClick }
 
   // Function to navigate to previous month
   const prevMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+    setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, 1));
   };
 
   // Function to navigate to next month
   const nextMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+    setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 1));
   };
 
   // Format date to YYYY-MM-DD for comparison with event dates
@@ -74,19 +74,19 @@ const Calendar: React.FC<CalendarProps> = ({ events, onDateClick, onEventClick }
 
   const generateCSV = () => {
     // Default to current month if no range selected
-    const startDate = dateRange.from || new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-    const endDate = dateRange.to || new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+    const startDate = dateRange.from || new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
+    const endDate = dateRange.to || new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0);
     
     // Headers for CSV
     let csvContent = "Date,TrainerID,TrainerName,Email,Phone,Task,TaskType,Role,ClientLocation,Status\n";
     
     // Create a date range array
     const dateRangeArray: Date[] = [];
-    let currentDate = new Date(startDate);
+    let currentIterationDate = new Date(startDate);
     
-    while (currentDate <= endDate) {
-      dateRangeArray.push(new Date(currentDate));
-      currentDate.setDate(currentDate.getDate() + 1);
+    while (currentIterationDate <= endDate) {
+      dateRangeArray.push(new Date(currentIterationDate));
+      currentIterationDate.setDate(currentIterationDate.getDate() + 1);
     }
     
     // For each date, add row for each event
@@ -126,8 +126,8 @@ const Calendar: React.FC<CalendarProps> = ({ events, onDateClick, onEventClick }
   // Render calendar days
   const renderCalendarDays = () => {
     const days = [];
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
+    const year = selectedDate.getFullYear();
+    const month = selectedDate.getMonth();
 
     // Add empty cells for days before the first day of the month
     for (let i = 0; i < startDayOfWeek; i++) {
@@ -181,7 +181,7 @@ const Calendar: React.FC<CalendarProps> = ({ events, onDateClick, onEventClick }
     <div className="calendar-container">
       <div className="calendar-header">
         <button className="btn-outline" onClick={prevMonth}>&lt; Prev</button>
-        <h2>{getMonthName(currentDate.getMonth())} {currentDate.getFullYear()}</h2>
+        <h2>{getMonthName(selectedDate.getMonth())} {selectedDate.getFullYear()}</h2>
         <button className="btn-outline" onClick={nextMonth}>Next &gt;</button>
       </div>
 
@@ -200,7 +200,11 @@ const Calendar: React.FC<CalendarProps> = ({ events, onDateClick, onEventClick }
               <ShadcnCalendar
                 mode="range"
                 selected={dateRange}
-                onSelect={setDateRange}
+                onSelect={(range) => {
+                  if (range) {
+                    setDateRange(range);
+                  }
+                }}
                 className="date-picker p-3 pointer-events-auto"
                 numberOfMonths={2}
               />
@@ -220,8 +224,8 @@ const Calendar: React.FC<CalendarProps> = ({ events, onDateClick, onEventClick }
                 onClick={() => {
                   // Download current month
                   setDateRange({
-                    from: new Date(currentDate.getFullYear(), currentDate.getMonth(), 1),
-                    to: new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)
+                    from: new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1),
+                    to: new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0)
                   });
                   setTimeout(generateCSV, 100);
                 }}
