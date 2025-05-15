@@ -1,4 +1,3 @@
-
 export interface Trainer {
   id: string;
   name: string;
@@ -20,6 +19,12 @@ export interface Trainer {
   }>;
   bio?: string;
   profileImage?: string;
+  allocations?: {
+    [date: string]: {
+      task: string;
+      role: string;
+    };
+  };
 }
 
 export interface College {

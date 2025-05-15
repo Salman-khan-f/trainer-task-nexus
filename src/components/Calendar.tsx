@@ -10,6 +10,7 @@ import { FileJson, FileCode, Import } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Textarea } from './ui/textarea';
+import CalendarDownloadOptions from './CalendarDownloadOptions';
 
 interface CalendarProps {
   events: CalendarEvent[];
@@ -20,11 +21,6 @@ interface CalendarProps {
 
 const Calendar: React.FC<CalendarProps> = ({ events, onDateClick, onEventClick, onEventsImported }) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: undefined,
-    to: undefined,
-  });
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [jsonInput, setJsonInput] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -78,113 +74,6 @@ const Calendar: React.FC<CalendarProps> = ({ events, onDateClick, onEventClick, 
       'July', 'August', 'September', 'October', 'November', 'December'
     ];
     return monthNames[month];
-  };
-
-  const generateCSV = () => {
-    // Default to current month if no range selected
-    const startDate = dateRange?.from || new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
-    const endDate = dateRange?.to || new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0);
-    
-    if (!startDate) return; // Safety check
-    
-    // Headers for CSV
-    let csvContent = "Date,TrainerID,TrainerName,Email,Phone,Task,TaskType,Role,ClientLocation,Status\n";
-    
-    // Create a date range array
-    const dateRangeArray: Date[] = [];
-    let currentIterationDate = new Date(startDate);
-    
-    while (currentIterationDate <= (endDate || startDate)) {
-      dateRangeArray.push(new Date(currentIterationDate));
-      currentIterationDate.setDate(currentIterationDate.getDate() + 1);
-    }
-    
-    // For each date, add row for each event
-    dateRangeArray.forEach(date => {
-      const dateStr = formatDate(date.getFullYear(), date.getMonth(), date.getDate());
-      const dateEvents = getEventsForDate(dateStr);
-      
-      if (dateEvents.length > 0) {
-        dateEvents.forEach(event => {
-          const trainer = events.find(e => e.id === event.id)?.trainerName || 'Unknown';
-          const formattedDate = format(date, 'yyyy-MM-dd');
-          
-          // Get trainer details - in a real app, you would fetch this from your service
-          // For now, we'll just use what we have
-          csvContent += `${formattedDate},${event.trainerId},${trainer},"","",${event.title},${event.type},${event.trainerRole || 'trainer'},${event.collegeName || ''},${event.status}\n`;
-        });
-      } else {
-        // Add an empty row for dates with no events
-        csvContent += `${format(date, 'yyyy-MM-dd')},"","","","","","","","",""\n`;
-      }
-    });
-    
-    // Create download link and trigger download
-    const encodedUri = encodeURI("data:text/csv;charset=utf-8," + csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `calendar_${format(startDate, 'yyyy-MM-dd')}_to_${format(endDate || startDate, 'yyyy-MM-dd')}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    // Reset date range after download
-    setDateRange(undefined);
-    setShowDatePicker(false);
-  };
-
-  // Render calendar days
-  const renderCalendarDays = () => {
-    const days = [];
-    const year = selectedDate.getFullYear();
-    const month = selectedDate.getMonth();
-
-    // Add empty cells for days before the first day of the month
-    for (let i = 0; i < startDayOfWeek; i++) {
-      days.push(<div key={`empty-${i}`} className="calendar-day empty"></div>);
-    }
-
-    // Add cells for each day of the month
-    for (let day = 1; day <= daysInMonth; day++) {
-      const date = formatDate(year, month, day);
-      const dateEvents = getEventsForDate(date);
-      const hasEvents = dateEvents.length > 0;
-      
-      days.push(
-        <div 
-          key={day} 
-          className={`calendar-day ${isToday(date) ? 'today' : ''} ${hasEvents ? 'has-events' : ''}`}
-          onClick={() => onDateClick(date)}
-        >
-          <div className="day-number">{day}</div>
-          {hasEvents && (
-            <div className="events-container">
-              {dateEvents.slice(0, 2).map((event, index) => (
-                <div 
-                  key={index} 
-                  className={`event ${event.type === 'training' ? 'training-event' : 'non-training-event'}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEventClick(event);
-                  }}
-                >
-                  <span className="event-title">{event.title}</span>
-                  <span className="event-trainer">
-                    {event.trainerName} 
-                    {event.trainerRole ? ` (${event.trainerRole === 'ta' ? 'TA' : 'Trainer'})` : ''}
-                  </span>
-                </div>
-              ))}
-              {dateEvents.length > 2 && (
-                <div className="more-events">+{dateEvents.length - 2} more</div>
-              )}
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    return days;
   };
 
   const handleImportJSON = () => {
@@ -267,6 +156,60 @@ const Calendar: React.FC<CalendarProps> = ({ events, onDateClick, onEventClick, 
     }
   };
 
+  // Render calendar days
+  const renderCalendarDays = () => {
+    const days = [];
+    const year = selectedDate.getFullYear();
+    const month = selectedDate.getMonth();
+
+    // Add empty cells for days before the first day of the month
+    for (let i = 0; i < startDayOfWeek; i++) {
+      days.push(<div key={`empty-${i}`} className="calendar-day empty"></div>);
+    }
+
+    // Add cells for each day of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = formatDate(year, month, day);
+      const dateEvents = getEventsForDate(date);
+      const hasEvents = dateEvents.length > 0;
+      
+      days.push(
+        <div 
+          key={day} 
+          className={`calendar-day ${isToday(date) ? 'today' : ''} ${hasEvents ? 'has-events' : ''}`}
+          onClick={() => onDateClick(date)}
+        >
+          <div className="day-number">{day}</div>
+          {hasEvents && (
+            <div className="events-container">
+              {dateEvents.slice(0, 2).map((event, index) => (
+                <div 
+                  key={index} 
+                  className={`event ${event.type === 'training' ? 'training-event' : 'non-training-event'}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEventClick(event);
+                  }}
+                >
+                  <span className="event-title">{event.title}</span>
+                  <span className="event-trainer">
+                    {event.trainerName} 
+                    {event.trainerRole ? ` (${event.trainerRole === 'ta' ? 'TA' : 'Trainer'})` : ''}
+                  </span>
+                </div>
+              ))}
+              {dateEvents.length > 2 && (
+                <div className="more-events">+{dateEvents.length - 2} more</div>
+              )}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    return days;
+  };
+
   return (
     <div className="calendar-container">
       <div className="calendar-header">
@@ -277,13 +220,7 @@ const Calendar: React.FC<CalendarProps> = ({ events, onDateClick, onEventClick, 
 
       <div className="calendar-toolbar">
         <div className="toolbar-actions">
-          <Button 
-            variant="outline" 
-            onClick={() => setShowDatePicker(!showDatePicker)}
-            className="export-btn"
-          >
-            {showDatePicker ? 'Cancel' : 'Export Calendar'}
-          </Button>
+          <CalendarDownloadOptions events={events} />
           
           <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
             <DialogTrigger asChild>
@@ -327,9 +264,9 @@ const Calendar: React.FC<CalendarProps> = ({ events, onDateClick, onEventClick, 
                       <pre className="bg-gray-100 p-2 rounded text-xs mt-2 overflow-auto">
 {`[
   {
-    "trainerId": "Neo1",
+    "trainerId": "neo10370",
     "type": "training",
-    "title": "React Training",
+    "title": "C++ Training",
     "description": "Description here",
     "startDate": "2025-05-20",
     "endDate": "2025-05-21",
@@ -355,7 +292,7 @@ const Calendar: React.FC<CalendarProps> = ({ events, onDateClick, onEventClick, 
                       <p>Excel file should have the following columns:</p>
                       <ul className="list-disc pl-5 mt-2">
                         <li>Date (YYYY-MM-DD)</li>
-                        <li>TrainerID</li>
+                        <li>EmployeeID</li>
                         <li>Task (title)</li>
                         <li>TaskType (training/non-training)</li>
                         <li>Role (trainer/ta)</li>
@@ -378,44 +315,6 @@ const Calendar: React.FC<CalendarProps> = ({ events, onDateClick, onEventClick, 
             </DialogContent>
           </Dialog>
         </div>
-        
-        {showDatePicker && (
-          <div className="date-picker-container">
-            <div className="date-range-selector">
-              <ShadcnCalendar
-                mode="range"
-                selected={dateRange}
-                onSelect={setDateRange}
-                className="date-picker p-3 pointer-events-auto"
-                numberOfMonths={2}
-              />
-            </div>
-            <div className="date-picker-actions">
-              <Button 
-                variant="default"
-                onClick={generateCSV}
-                disabled={!dateRange?.from}
-                className="download-btn"
-              >
-                Download CSV
-              </Button>
-              
-              <Button 
-                variant="outline"
-                onClick={() => {
-                  // Download current month
-                  setDateRange({
-                    from: new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1),
-                    to: new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0)
-                  });
-                  setTimeout(generateCSV, 100);
-                }}
-              >
-                Download Current Month
-              </Button>
-            </div>
-          </div>
-        )}
       </div>
       
       <div className="calendar-weekdays">
@@ -482,27 +381,6 @@ const Calendar: React.FC<CalendarProps> = ({ events, onDateClick, onEventClick, 
         
         .import-btn:hover {
           background-color: #e0f2fe;
-        }
-        
-        .date-picker-container {
-          background-color: white;
-          border: 1px solid var(--gray-medium);
-          border-radius: var(--border-radius);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-          margin-top: var(--spacing-sm);
-          padding: var(--spacing-md);
-          z-index: 10;
-        }
-        
-        .date-range-selector {
-          margin-bottom: var(--spacing-md);
-        }
-        
-        .date-picker-actions {
-          display: flex;
-          gap: var(--spacing-sm);
-          justify-content: center;
-          flex-wrap: wrap;
         }
         
         .calendar-weekdays {
@@ -602,15 +480,6 @@ const Calendar: React.FC<CalendarProps> = ({ events, onDateClick, onEventClick, 
           font-size: 0.7rem;
           text-align: center;
           color: var(--primary);
-        }
-
-        .export-btn {
-          align-self: flex-end;
-        }
-        
-        .download-btn {
-          background-color: #4CAF50;
-          color: white;
         }
 
         @media (max-width: 768px) {

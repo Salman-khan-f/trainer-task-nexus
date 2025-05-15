@@ -1,46 +1,148 @@
+
 import { Trainer, College, Task, UserCredentials } from '../types';
 
-// Mock trainer data (as if imported from Excel) with enhanced details
-export const trainers: Trainer[] = Array.from({ length: 50 }, (_, i) => {
-  const id = `Neo${i + 1}`;
-  const specializations = getRandomSpecializations();
-  
-  return {
-    id,
-    name: `Trainer ${i + 1}`,
-    email: `trainer${i + 1}@example.com`,
-    phone: `555-000-${1000 + i}`,
-    specialization: specializations,
-    availability: Math.random() > 0.2, // 80% are available
-    education: Math.random() > 0.5 ? "B.E Computer Science Engineering" : "M.Sc Computer Science",
-    position: "Technical Trainer",
-    areaOfExpertise: {
-      programmingLanguages: getExpertiseBasedOnSpecialization(specializations, 'language'),
-      problemSolving: Math.random() > 0.5 ? "Data Structures and Algorithms" : "System Design",
-      cloudTechnologies: Math.random() > 0.5 ? "AWS Cloud Architect" : "Azure Cloud Services"
-    },
-    workExperience: [
-      {
-        position: "Technical Trainer",
-        company: "iamneo",
-        duration: "August 2023 - Present"
-      },
-      {
-        position: "Career Development Coach",
-        company: "ETHNUS Consultancy",
-        duration: "June 2022 - June 2023"
-      }
-    ],
-    bio: `Dedicated Career Development Coach and Technical Trainer with a strong technical foundation in ${specializations.join(', ')}. Experienced in guiding and mentoring college students and early-career professionals.`
-  };
-});
+// Mock trainer data based on the provided list and spreadsheet
+export const trainers: Trainer[] = [
+  {
+    id: 'neo10172',
+    name: 'Aravindhan S',
+    email: 'aravindhan.s@iamneo.ai',
+    phone: '6381466026',
+    specialization: [],
+    availability: true,
+    position: '',
+    allocations: {
+      '2025-04-01': { task: 'Not alloted', role: 'Not alloted' },
+      '2025-04-02': { task: 'Not alloted', role: 'Not alloted' }
+    }
+  },
+  {
+    id: 'neo/c/10301',
+    name: 'Bindhiya J',
+    email: 'bindhiya.j@iamneo.ai',
+    phone: '8925702124',
+    specialization: ['Parul - C++', 'DSA'],
+    availability: false,
+    position: 'TA',
+    allocations: {
+      '2025-04-01': { task: 'Parul - C++, DSA', role: 'TA' },
+      '2025-04-02': { task: 'Parul - C++', role: 'TA' }
+    }
+  },
+  {
+    id: 'neo10370',
+    name: 'Denis Anto Bosco J',
+    email: 'denisanto.bosco@iamneo.ai',
+    phone: '6381035379',
+    specialization: ['Parul - C++', 'DSA'],
+    availability: false,
+    position: 'Trainer',
+    allocations: {
+      '2025-04-01': { task: 'Parul - C++, DSA', role: 'Trainer' },
+      '2025-04-02': { task: 'Parul - C++', role: 'Trainer' }
+    }
+  },
+  {
+    id: 'neo10377',
+    name: 'Devisri Shanmugam',
+    email: 'devisri.s@iamneo.ai',
+    phone: '9629984527',
+    specialization: [],
+    availability: true,
+    position: '',
+    allocations: {
+      '2025-04-01': { task: 'Not alloted', role: 'Not alloted' },
+      '2025-04-02': { task: 'Not alloted', role: 'Not alloted' }
+    }
+  },
+  {
+    id: 'neo10390',
+    name: 'Gokulnath S',
+    email: 'gokulnath.s@iamneo.ai',
+    phone: '8073844150',
+    specialization: [],
+    availability: true,
+    position: '',
+    allocations: {
+      '2025-04-01': { task: 'Not alloted', role: 'Not alloted' },
+      '2025-04-02': { task: 'Not alloted', role: 'Not alloted' }
+    }
+  },
+  {
+    id: 'neo10265',
+    name: 'Karan Dharmalingam',
+    email: 'karan@iamneo.ai',
+    phone: '8248086234',
+    specialization: [],
+    availability: true,
+    position: '',
+    allocations: {
+      '2025-04-01': { task: 'Not alloted', role: 'Not alloted' },
+      '2025-04-02': { task: 'Not alloted', role: 'Not alloted' }
+    }
+  },
+  {
+    id: 'neo10367',
+    name: 'Mohammad Abrar',
+    email: 'mohammad.abrar@iamneo.ai',
+    phone: '8220741428',
+    specialization: [],
+    availability: true,
+    position: '',
+    allocations: {
+      '2025-04-01': { task: 'Not alloted', role: 'Not alloted' },
+      '2025-04-02': { task: 'Not alloted', role: 'Not alloted' }
+    }
+  },
+  {
+    id: 'neo/c/10278',
+    name: 'Ramachandramoorthy K B',
+    email: 'machandra.moorthy@iamneo.ai',
+    phone: '9487057895',
+    specialization: ['Parul - C++', 'DSA'],
+    availability: false,
+    position: 'TA',
+    allocations: {
+      '2025-04-01': { task: 'Parul - C++, DSA', role: 'TA' },
+      '2025-04-02': { task: 'Parul - C++', role: 'TA' }
+    }
+  },
+  {
+    id: 'neo10335',
+    name: 'Salman Khan',
+    email: 'salmankhan@iamneo.ai',
+    phone: '9344366702',
+    specialization: [],
+    availability: true,
+    position: '',
+    allocations: {
+      '2025-04-01': { task: 'Not alloted', role: 'Not alloted' },
+      '2025-04-02': { task: 'Not alloted', role: 'Not alloted' }
+    }
+  },
+  {
+    id: 'neo10376',
+    name: 'Surya K',
+    email: 'surya.k@iamneo.ai',
+    phone: '8220924040',
+    specialization: [],
+    availability: true,
+    position: '',
+    allocations: {
+      '2025-04-01': { task: 'Not alloted', role: 'Not alloted' },
+      '2025-04-02': { task: 'Not alloted', role: 'Not alloted' }
+    }
+  }
+];
 
+// Helper functions
 function getExpertiseBasedOnSpecialization(specializations: string[], type: 'language' | 'cloud') {
   if (type === 'language') {
     if (specializations.includes('React')) return 'JavaScript, TypeScript, React';
     if (specializations.includes('Java')) return 'Java, Spring Boot';
     if (specializations.includes('Python')) return 'Python, Django';
     if (specializations.includes('DSA')) return 'C++, Java';
+    if (specializations.includes('Parul - C++')) return 'C++';
     return 'JavaScript, Java, Python';
   }
   
@@ -70,47 +172,103 @@ export const colleges: College[] = [
   { id: 'C4', name: 'Computer Science University', location: 'Austin', contact: '555-369-1478' },
   { id: 'C5', name: 'Developer Training Center', location: 'Seattle', contact: '555-789-4561' },
   { id: 'C6', name: 'Sree Krishna College of Technology', location: 'Chennai', contact: '555-111-2222' },
+  { id: 'C7', name: 'Parul University', location: 'Gujarat', contact: '555-222-3333' },
 ];
 
-// Sample initial tasks
+// Generate tasks based on the trainer allocations
 export const initialTasks: Task[] = [
+  // Generate tasks for April 1, 2025
   {
-    id: 'task1',
-    trainerId: 'Neo1',
+    id: 'task-20250401-1',
+    trainerId: 'neo10370',
     type: 'training',
-    title: 'React Fundamentals',
-    description: 'Introduction to React basics and hooks',
-    startDate: '2025-05-14',
-    endDate: '2025-05-14',
+    title: 'Parul - C++, DSA',
+    description: 'Training on C++ and DSA concepts',
+    startDate: '2025-04-01',
+    endDate: '2025-04-01',
     startTime: '09:00',
     endTime: '17:00',
-    collegeId: 'C1',
-    course: 'React',
+    collegeId: 'C7',
+    course: 'C++, DSA',
     status: 'pending',
+    trainerRole: 'trainer',
   },
   {
-    id: 'task2',
-    trainerId: 'Neo2',
+    id: 'task-20250401-2',
+    trainerId: 'neo/c/10301',
     type: 'training',
-    title: 'Data Structures',
-    description: 'Advanced data structures concepts',
-    startDate: '2025-05-15',
-    endDate: '2025-05-16',
-    startTime: '10:00',
-    endTime: '16:00',
-    collegeId: 'C2',
-    course: 'DSA',
+    title: 'Parul - C++, DSA',
+    description: 'Assisting with C++ and DSA training',
+    startDate: '2025-04-01',
+    endDate: '2025-04-01',
+    startTime: '09:00',
+    endTime: '17:00',
+    collegeId: 'C7',
+    course: 'C++, DSA',
     status: 'pending',
+    trainerRole: 'ta',
   },
   {
-    id: 'task3',
-    trainerId: 'Neo3',
-    type: 'non-training',
-    title: 'Curriculum Development',
-    description: 'Develop new SDET curriculum',
-    startDate: '2025-05-13',
-    endDate: '2025-05-20',
-    status: 'in-progress',
+    id: 'task-20250401-3',
+    trainerId: 'neo/c/10278',
+    type: 'training',
+    title: 'Parul - C++, DSA',
+    description: 'Assisting with C++ and DSA training',
+    startDate: '2025-04-01',
+    endDate: '2025-04-01',
+    startTime: '09:00',
+    endTime: '17:00',
+    collegeId: 'C7',
+    course: 'C++, DSA',
+    status: 'pending',
+    trainerRole: 'ta',
+  },
+
+  // Generate tasks for April 2, 2025
+  {
+    id: 'task-20250402-1',
+    trainerId: 'neo10370',
+    type: 'training',
+    title: 'Parul - C++',
+    description: 'Training on C++ concepts',
+    startDate: '2025-04-02',
+    endDate: '2025-04-02',
+    startTime: '09:00',
+    endTime: '17:00',
+    collegeId: 'C7',
+    course: 'C++',
+    status: 'pending',
+    trainerRole: 'trainer',
+  },
+  {
+    id: 'task-20250402-2',
+    trainerId: 'neo/c/10301',
+    type: 'training',
+    title: 'Parul - C++',
+    description: 'Assisting with C++ training',
+    startDate: '2025-04-02',
+    endDate: '2025-04-02',
+    startTime: '09:00',
+    endTime: '17:00',
+    collegeId: 'C7',
+    course: 'C++',
+    status: 'pending',
+    trainerRole: 'ta',
+  },
+  {
+    id: 'task-20250402-3',
+    trainerId: 'neo/c/10278',
+    type: 'training',
+    title: 'Parul - C++',
+    description: 'Assisting with C++ training',
+    startDate: '2025-04-02',
+    endDate: '2025-04-02',
+    startTime: '09:00',
+    endTime: '17:00',
+    collegeId: 'C7',
+    course: 'C++',
+    status: 'pending',
+    trainerRole: 'ta',
   },
 ];
 
